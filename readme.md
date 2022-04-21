@@ -2,7 +2,7 @@
 clone starter into new empty project directory
 
 ```
-wget https://raw.githubusercontent.com/godamri/docker-octane-starter/main/get.sh | bash
+wget -O - https://raw.githubusercontent.com/godamri/docker-octane-starter/main/get.sh | bash
 ```
 
 
