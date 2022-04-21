@@ -1,3 +1,9 @@
+### Get new starter
+
+```
+wget https://raw.githubusercontent.com/godamri/docker-octane-starter/main/get.sh | bash
+```
+
 
 ### build development
 ```
