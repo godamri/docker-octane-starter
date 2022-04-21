@@ -1,0 +1,54 @@
+variables:
+  CI_IMAGE_TAG : $CI_COMMIT_BRANCH
+stages:
+  - build
+  - test
+  - deploy
+
+before_script:
+  - docker info
+  - mkdir -p $HOME/.docker
+  - docker login $CI_REGISTRY --username $REPO_DEPLOY_USERNAME --password $REPO_DEPLOY_TOKEN
+
+build:
+  only:
+    - production
+  stage: build
+  script:
+    - docker build -t $BUILD_IMAGE_NAME .
+    - docker tag $BUILD_IMAGE_NAME $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$BUILD_IMAGE_NAME:$CI_IMAGE_TAG
+    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$BUILD_IMAGE_NAME:$CI_IMAGE_TAG
+
+test:
+  only:
+    - production
+  stage: test
+  script:
+    - echo "test"
+
+deploy:
+  only:
+    - production
+  before_script:
+    - docker login $CI_REGISTRY --username $REPO_DEPLOY_USERNAME --password $REPO_DEPLOY_TOKEN
+    - apk update && apk add openssh-client
+    - rm -f ~/.ssh/id_rsa && mkdir -p ~/.ssh/
+    - touch ~/.ssh/id_rsa
+    - echo "${ID_RSA}" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - eval "$(ssh-agent -s)"
+    - ssh-add ~/.ssh/id_rsa
+    - ssh-keyscan -p $SERVER_SSH_PORT -H $SERVER_IP >> ~/.ssh/known_hosts
+
+  script:
+    - ssh $SERVER_USER@$SERVER_IP -p $SERVER_SSH_PORT "docker login -u ${REPO_DEPLOY_USERNAME} -p ${REPO_DEPLOY_TOKEN} ${CI_REGISTRY}"
+    - ssh $SERVER_USER@$SERVER_IP -p $SERVER_SSH_PORT "docker container stop $BUILD_IMAGE_NAME || true"
+    - ssh $SERVER_USER@$SERVER_IP -p $SERVER_SSH_PORT "docker container rm -f $BUILD_IMAGE_NAME || true"
+    - ssh $SERVER_USER@$SERVER_IP -p $SERVER_SSH_PORT "docker rmi -f $(docker images -q $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$BUILD_IMAGE_NAME) || true"
+    - ssh $SERVER_USER@$SERVER_IP -p $SERVER_SSH_PORT "docker pull $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$BUILD_IMAGE_NAME:$CI_IMAGE_TAG"
+    - ssh $SERVER_USER@$SERVER_IP -p $SERVER_SSH_PORT "docker run --env-file ${ENV_FILE_LOCATION} --mount source=${BUILD_IMAGE_NAME}-vol,destination=/var/www/app/storage/ -d -p 8080:8080 -p 5432:5432 --name $BUILD_IMAGE_NAME $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$BUILD_IMAGE_NAME:$CI_IMAGE_TAG"
+    - ssh $SERVER_USER@$SERVER_IP -p $SERVER_SSH_PORT "docker exec $BUILD_IMAGE_NAME php artisan migrate"
+    - rm -f ~/.ssh/id_rsa
+
+after_script:
+  - docker logout
