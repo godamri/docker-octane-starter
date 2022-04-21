@@ -35,7 +35,7 @@ up: build run ## Run container on port
 
 up-dev: build run-dev
 
-root-b: build-dev root
+root-b: dev root
 
 stop: ## Stop and remove a running container
 	docker stop $(APP_NAME); docker rm $(APP_NAME)
