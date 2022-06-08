@@ -6,7 +6,8 @@ DOCKER_REPO=godamri
 PORT=8080
 DIST_PORT=8080
 
-PGSQL_PORT=5432
+PGSQL_DIST_PORT=5432
+MYSQL_DIST_PORT=3306
 
 # DOCKER TASKS
 # Build the container
@@ -25,17 +26,16 @@ run: ## Run container
 run-dev: ## Run container dev volume
 	docker run -i -t --rm --env-file ./appsrc/.env -v $(PWD)/appsrc:/var/www/app -p $(PORT):$(DIST_PORT) --name="$(APP_NAME)" $(APP_NAME)
 
-root: ## Run container with root
-	docker run --workdir /root --user root -i -t --rm --env-file ./appsrc/.env -v $(PWD)/appsrc:/var/www/app -p $(PORT):$(DIST_PORT) --name="$(APP_NAME)" $(APP_NAME)
-
 login: ## access container's terminal
 	docker exec -it $(APP_NAME) /bin/sh
 
+rlogin: ## access container's terminal using root
+	docker exec -it -u 0 $(APP_NAME) /bin/sh
+
 up: build run ## Run container on port
 
-up-dev: build run-dev
+up-dev: dev run-dev
 
-root-b: dev root
 
 stop: ## Stop and remove a running container
 	docker stop $(APP_NAME); docker rm $(APP_NAME)
