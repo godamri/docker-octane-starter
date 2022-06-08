@@ -8,13 +8,11 @@ COPY ./conf/supervisor/conf.d/worker.conf /etc/supervisor/conf.d/worker.conf
 COPY ./conf/supervisor/conf.d/octane.conf /etc/supervisor/conf.d/octane.conf
 COPY ./conf/php/php.ini /usr/local/etc/php/conf.d/999-custom.ini
 
-COPY ./appsrc /var/www/app/
+COPY --chown=nobody:nobody ./appsrc /var/www/app/
 RUN rm -rf ./node_modules
 RUN rm -rf ./vendor
 
 RUN composer install --no-dev
-
-RUN chown -R nobody.nobody /var/www/app
 
 USER nobody
 
