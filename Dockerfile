@@ -12,9 +12,9 @@ COPY --chown=nobody:nobody ./appsrc /var/www/app/
 RUN rm -rf ./node_modules
 RUN rm -rf ./vendor
 
-RUN composer install --no-dev
-
 USER nobody
+
+RUN composer install --no-dev
 
 RUN ln -sf /dev/stdout /var/www/app/storage/logs/out.log
 
