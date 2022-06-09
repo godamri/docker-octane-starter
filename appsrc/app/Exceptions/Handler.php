@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use App\Utils\CommunicationLogService;
 use App\Utils\FriendlyException;
+use App\Utils\FriendlyExceptionErrorBag;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
 
@@ -51,13 +52,13 @@ class Handler extends ExceptionHandler
         if ( $request->expectsJson()) {
             if ($e instanceof FriendlyException) {
                 $request->header('Accept', 'application/json');
-                $errors = $e->errors;
+                $errors = $e->errors ?? [];
                 $code = $e->statusCode;
                 $message = $e->getMessage();
                 return response()->json([
                     'error' => $code,
                     'message' => $message,
-                    'errors' => $errors
+                    'errors' => array_merge(app(FriendlyExceptionErrorBag::class)->getErrors(), [$errors])
                 ]);
             }
             app(CommunicationLogService::class)->commit(
