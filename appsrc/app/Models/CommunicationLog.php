@@ -16,10 +16,12 @@ class CommunicationLog extends Model
         'request',
         'response',
         'executor_identity',
+        'request_id',
     ];
 
     protected $casts = [
         'request' => 'array',
         'response' => 'array',
+        'request_id' => 'string',
     ];
 }
