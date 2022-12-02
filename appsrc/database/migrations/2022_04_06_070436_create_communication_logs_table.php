@@ -20,6 +20,7 @@ return new class extends Migration
             $table->double('load_time')->default(0.0);
             $table->json('request')->default('[]');
             $table->json('response')->default('[]');
+            $table->string('request_id')->nullable()->default(NULL);
             $table->string('executor_identity')->nullable()->default(NULL);
             $table->timestamps();
         });
