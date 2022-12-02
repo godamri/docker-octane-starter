@@ -57,6 +57,7 @@ class CommunicationLogService
             'load_time' => microtime(true) - $this->startTime,
             'response' => $data,
             'executor_identity' => isset(app()['request']->user()->id) ? (string) app()['request']->user()->id : NULL,
+            'request_id' => request()->header('X-Request-Id', NULL),
         ]);
         if($this->model->url) {
             $this->model->save();
